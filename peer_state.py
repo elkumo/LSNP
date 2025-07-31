@@ -1,3 +1,6 @@
+# Current Implementation: Milestone 1 and 2
+# By Alexi Alberto and Elmo Mandigma
+
 peers = {}
 posts = []
 dms = []

@@ -1,3 +1,6 @@
+# Current Implementation: Milestone 1 and 2
+# By Alexi Alberto and Elmo Mandigma
+
 from constants import SEPARATOR, MESSAGE_TERMINATOR
 
 def parse_message(data):
