@@ -14,7 +14,7 @@ from constants import PROFILE_INTERVAL
 
 my_user_id = "you@192.168.1.100"  # Replace with your real IP
 
-def create_post(content):
+def create_post(content): # Create a post message
     return {
         "TYPE": "POST",
         "USER_ID": my_user_id,
@@ -24,7 +24,7 @@ def create_post(content):
         "TOKEN": f"{my_user_id}|{get_timestamp()+3600}|broadcast"
     }
 
-def create_dm(target, content):
+def create_dm(target, content): # Create a direct message
     return {
         "TYPE": "DM",
         "FROM": my_user_id,
@@ -78,10 +78,10 @@ Available commands:
   show messages                       - Show received posts and DMs
   exit                                - Quit the program
 """)
-            elif cmd.startswith("post "):
+            elif cmd.startswith("post "): # Create a post
                 content = cmd[5:].strip()
                 send_message(create_post(content), verbose=VERBOSE)
-            elif cmd.startswith("dm "):
+            elif cmd.startswith("dm "): # Create a direct message
                 try:
                     parts = cmd.split(" ", 2)
                     to = parts[1]
@@ -89,26 +89,26 @@ Available commands:
                     send_message(create_dm(to, content), addr=to.split("@")[1], verbose=VERBOSE)
                 except:
                     print("Usage: dm <user_id> <message>")
-            elif cmd.startswith("follow "):
+            elif cmd.startswith("follow "): # Follow a user
                 to = cmd[7:].strip()
                 send_follow(to, verbose=VERBOSE)
-            elif cmd.startswith("unfollow "):
+            elif cmd.startswith("unfollow "): # Unfollow a user
                 to = cmd[9:].strip()
                 send_unfollow(to, verbose=VERBOSE)
-            elif cmd == "profile":
+            elif cmd == "profile": # Manually broadcast profile
                 send_profile(verbose=VERBOSE)
-            elif cmd == "ping":
+            elif cmd == "ping": # Manually broadcast a ping
                 send_ping(verbose=VERBOSE)
-            elif cmd == "show peers":
+            elif cmd == "show peers": # Show known peers
                 print_known_peers()
-            elif cmd == "show messages":
+            elif cmd == "show messages": # Show received posts and DMs
                 print_messages()
-            elif cmd == "exit":
+            elif cmd == "exit": # Exit the program
                 print("Exiting LSNP...")
                 break
-            elif cmd == "":
+            elif cmd == "": # Ignore empty input
                 continue
-            else:
+            else: # Unknown command
                 print("Unknown command. Type 'help' for options.")
 
     except KeyboardInterrupt:
