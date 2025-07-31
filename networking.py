@@ -3,13 +3,20 @@
 
 import socket
 import threading
+import csv
 from message_parser import parse_message, craft_message
 from peer_state import update_peer, store_post, store_dm
 from constants import PORT, BROADCAST_ADDR, BUFFER_SIZE
 from utils import log, get_timestamp
 
-# Change your IP and user ID if needed
-my_user_id = "you@192.168.100.171" #pull from csv file. not hardcoded
+# Load my_user_id and display_name from USER.csv
+def load_user_info(csv_path="USER.csv"):
+    with open(csv_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        user = next(reader)
+        return user["my_user_id"], user["displayname"]
+
+my_user_id, display_name = load_user_info()
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -49,7 +56,7 @@ def send_profile(verbose=False):
     profile = {
         "TYPE": "PROFILE",
         "USER_ID": my_user_id,
-        "DISPLAY_NAME": "You", #pull string from independent csv file
+        "DISPLAY_NAME": display_name,  # pulled from CSV
         "STATUS": "Ready to connect!"
     }
     send_message(profile, BROADCAST_ADDR, verbose)
