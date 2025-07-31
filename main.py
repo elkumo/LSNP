@@ -1,8 +1,8 @@
 # Current Implementation: Milestone 1 and 2
 # By Alexi Alberto and Elmo Mandigma
 
-import argparse
 import time
+import argparse
 from networking import (
     send_message, start_listener,
     send_profile, send_ping,
@@ -12,7 +12,7 @@ from peer_state import print_known_peers, print_messages
 from utils import get_timestamp
 from constants import PROFILE_INTERVAL
 
-my_user_id = "you@192.168.1.100"  # Change to your actual IP if needed
+my_user_id = "you@192.168.1.100"  # Replace with your actual IP or set dynamically
 
 def create_post(content):
     return {
@@ -36,44 +36,74 @@ def create_dm(target, content):
     }
 
 if __name__ == "__main__":
+    # CLI arg to enable verbose mode
     parser = argparse.ArgumentParser()
-    parser.add_argument("--verbose", action="store_true")
-    parser.add_argument("--post", help="Send a POST message")
-    parser.add_argument("--dm", nargs=2, metavar=("TO", "CONTENT"))
-    parser.add_argument("--show", choices=["peers", "messages"])
-    parser.add_argument("--follow", help="User ID to follow")
-    parser.add_argument("--unfollow", help="User ID to unfollow")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
     args = parser.parse_args()
+    VERBOSE = args.verbose
 
-    start_listener(verbose=args.verbose)
-    send_profile(verbose=args.verbose)
+    print("Starting LSNP peer...")
+    start_listener(verbose=VERBOSE)
+    send_profile(verbose=VERBOSE)
 
-    if args.post:
-        send_message(create_post(args.post), verbose=args.verbose)
-
-    if args.dm:
-        to, content = args.dm
-        send_message(create_dm(to, content), addr=to.split("@")[1], verbose=args.verbose)
-
-    if args.follow:
-        send_follow(args.follow, verbose=args.verbose)
-
-    if args.unfollow:
-        send_unfollow(args.unfollow, verbose=args.verbose)
-
-    if args.show == "peers":
-        print_known_peers()
-    elif args.show == "messages":
-        print_messages()
+    print("\nLSNP is now running. Type 'help' for commands.\n")
 
     try:
         ping_profile_toggle = True
+        last_ping = time.time()
+
         while True:
-            if ping_profile_toggle:
-                send_ping(verbose=args.verbose)
+            # Periodic PING/PROFILE
+            now = time.time()
+            if now - last_ping > PROFILE_INTERVAL:
+                if ping_profile_toggle:
+                    send_ping(verbose=VERBOSE)
+                else:
+                    send_profile(verbose=VERBOSE)
+                ping_profile_toggle = not ping_profile_toggle
+                last_ping = now
+
+            # User input loop
+            cmd = input(">> ").strip()
+            if cmd == "help":
+                print("""
+Available commands:
+  post <message>                      - Broadcast a post
+  dm <user_id> <message>              - Send a direct message
+  follow <user_id>                    - Follow a user
+  unfollow <user_id>                  - Unfollow a user
+  show peers                          - Show known peers
+  show messages                       - Show received posts and DMs
+  exit                                - Quit the program
+""")
+            elif cmd.startswith("post "):
+                content = cmd[5:].strip()
+                send_message(create_post(content), verbose=VERBOSE)
+            elif cmd.startswith("dm "):
+                try:
+                    parts = cmd.split(" ", 2)
+                    to = parts[1]
+                    content = parts[2]
+                    send_message(create_dm(to, content), addr=to.split("@")[1], verbose=VERBOSE)
+                except:
+                    print("Usage: dm <user_id> <message>")
+            elif cmd.startswith("follow "):
+                to = cmd[7:].strip()
+                send_follow(to, verbose=VERBOSE)
+            elif cmd.startswith("unfollow "):
+                to = cmd[9:].strip()
+                send_unfollow(to, verbose=VERBOSE)
+            elif cmd == "show peers":
+                print_known_peers()
+            elif cmd == "show messages":
+                print_messages()
+            elif cmd == "exit":
+                print("Exiting LSNP...")
+                break
+            elif cmd == "":
+                continue
             else:
-                send_profile(verbose=args.verbose)
-            ping_profile_toggle = not ping_profile_toggle
-            time.sleep(PROFILE_INTERVAL)
+                print("Unknown command. Type 'help' for options.")
+
     except KeyboardInterrupt:
-        print("Exiting...")
+        print("\nInterrupted. Exiting LSNP...")
