@@ -12,7 +12,7 @@ from peer_state import print_known_peers, print_messages
 from utils import get_timestamp
 from constants import PROFILE_INTERVAL
 
-my_user_id = "you@192.168.1.100"  # Replace with your actual IP or set dynamically
+my_user_id = "you@192.168.1.100"  # Replace with your real IP
 
 def create_post(content):
     return {
@@ -72,6 +72,8 @@ Available commands:
   dm <user_id> <message>              - Send a direct message
   follow <user_id>                    - Follow a user
   unfollow <user_id>                  - Unfollow a user
+  profile                             - Manually broadcast your PROFILE
+  ping                                - Manually broadcast a PING
   show peers                          - Show known peers
   show messages                       - Show received posts and DMs
   exit                                - Quit the program
@@ -93,6 +95,10 @@ Available commands:
             elif cmd.startswith("unfollow "):
                 to = cmd[9:].strip()
                 send_unfollow(to, verbose=VERBOSE)
+            elif cmd == "profile":
+                send_profile(verbose=VERBOSE)
+            elif cmd == "ping":
+                send_ping(verbose=VERBOSE)
             elif cmd == "show peers":
                 print_known_peers()
             elif cmd == "show messages":
