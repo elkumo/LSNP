@@ -14,7 +14,7 @@ def load_user_info(csv_path="USER.csv"):
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         user = next(reader)
-        return user["my_user_id"], user["displayname"]
+        return user["my_user_id"], user["display_name"]
 
 my_user_id, display_name = load_user_info()
 

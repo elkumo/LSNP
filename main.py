@@ -3,6 +3,7 @@
 
 import time
 import argparse
+import csv
 from networking import (
     send_message, start_listener,
     send_profile, send_ping,
@@ -12,7 +13,13 @@ from peer_state import print_known_peers, print_messages
 from utils import get_timestamp
 from constants import PROFILE_INTERVAL
 
-my_user_id = "you@192.168.1.100"  # Replace with your real IP
+def load_my_user_id(csv_path="USER.csv"):
+    with open(csv_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        user = next(reader)
+        return user["my_user_id"]
+    
+my_user_id = load_my_user_id()  # Replace with your real IP
 
 def create_post(content): # Create a post message
     return {
