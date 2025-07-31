@@ -9,7 +9,7 @@ from constants import PORT, BROADCAST_ADDR, BUFFER_SIZE
 from utils import log, get_timestamp
 
 # Change your IP and user ID if needed
-my_user_id = "you@192.168.1.100"
+my_user_id = "you@192.168.100.171" #pull from csv file. not hardcoded
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -49,7 +49,7 @@ def send_profile(verbose=False):
     profile = {
         "TYPE": "PROFILE",
         "USER_ID": my_user_id,
-        "DISPLAY_NAME": "You",
+        "DISPLAY_NAME": "You", #pull string from independent csv file
         "STATUS": "Ready to connect!"
     }
     send_message(profile, BROADCAST_ADDR, verbose)
