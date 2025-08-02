@@ -4,6 +4,7 @@
 import time
 import argparse
 import csv
+import uuid
 from networking import (
     send_message, start_listener,
     send_profile, send_ping,
@@ -21,26 +22,37 @@ def load_my_user_id(csv_path="USER.csv"):
     
 my_user_id = load_my_user_id()  # Replace with your real IP
 
-def create_post(content): # Create a post message
+def create_post():
+    content = input("Post content: ").strip()
+    now = get_timestamp()
+    message_id = uuid.uuid4().hex[:8]
     return {
         "TYPE": "POST",
         "USER_ID": my_user_id,
         "CONTENT": content,
         "TTL": "3600",
-        "MESSAGE_ID": "m" + str(get_timestamp()),
-        "TOKEN": f"{my_user_id}|{get_timestamp()+3600}|broadcast"
+        "MESSAGE_ID": message_id,
+        "TOKEN": f"{my_user_id}|{now + 3600}|broadcast"
     }
 
-def create_dm(target, content): # Create a direct message
+def create_dm(target):
+    now = get_timestamp()
+    message_id = uuid.uuid4().hex[:8]
+    content = input("Message: ").strip()
     return {
         "TYPE": "DM",
         "FROM": my_user_id,
         "TO": target,
         "CONTENT": content,
-        "TIMESTAMP": str(get_timestamp()),
-        "MESSAGE_ID": "d" + str(get_timestamp()),
-        "TOKEN": f"{my_user_id}|{get_timestamp()+3600}|chat"
+        "TIMESTAMP": str(now),
+        "MESSAGE_ID": message_id,
+        "TOKEN": f"{my_user_id}|{now + 3600}|chat"
     }
+
+def print_key_value_message(msg):
+    for key in ["TYPE", "FROM", "TO", "CONTENT", "TIMESTAMP", "MESSAGE_ID", "TOKEN"]:
+        if key in msg:
+            print(f"{key}: {msg[key]}")
 
 if __name__ == "__main__":
     # CLI arg to enable verbose mode
@@ -79,23 +91,26 @@ Available commands:
   dm <user_id> <message>              - Send a direct message
   follow <user_id>                    - Follow a user
   unfollow <user_id>                  - Unfollow a user
-  profile                             - Manually broadcast your PROFILE
+  profile                             - Send your profile
   ping                                - Manually broadcast a PING
   show peers                          - Show known peers
   show messages                       - Show received posts and DMs
   exit                                - Quit the program
 """)
             elif cmd.startswith("post "): # Create a post
-                content = cmd[5:].strip()
-                send_message(create_post(content), verbose=VERBOSE)
-            elif cmd.startswith("dm "): # Create a direct message
+                post_msg = create_post()
+                print_key_value_message(post_msg)
+                send_message(post_msg, verbose=VERBOSE)
+            elif cmd.startswith("dm "):
                 try:
-                    parts = cmd.split(" ", 2)
+                    parts = cmd.split(" ", 1)
                     to = parts[1]
-                    content = parts[2]
-                    send_message(create_dm(to, content), addr=to.split("@")[1], verbose=VERBOSE)
+                    dm_msg = create_dm(to)
+                    send_message(dm_msg, addr=to.split("@")[1], verbose=VERBOSE)
                 except:
-                    print("Usage: dm <user_id> <message>")
+                    print("Usage: dm <user_id>")
+                to = cmd[7:].strip()
+                send_follow(to, verbose=VERBOSE)
             elif cmd.startswith("follow "): # Follow a user
                 to = cmd[7:].strip()
                 send_follow(to, verbose=VERBOSE)
