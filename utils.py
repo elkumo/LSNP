@@ -8,4 +8,5 @@ def get_timestamp():
 
 def log(message, verbose=True):
     if verbose:
-        print(f"[{time.strftime('%H:%M:%S')}] {message}")
+        for field in str(message).split(','):
+            print(f"[{time.strftime('%H:%M:%S')}] {field.strip()}")
