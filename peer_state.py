@@ -8,22 +8,28 @@ dms = []
 def update_peer(user_id, display_name, status):
     peers[user_id] = {'name': display_name, 'status': status}
 
-def store_post(user_id, content):
-    posts.append((user_id, content))
+def store_post(msg):
+    posts.append(msg)
 
-def store_dm(user_id, content):
-    dms.append((user_id, content))
+def store_dm(msg):
+    dms.append(msg)
 
 def print_known_peers():
     for uid, info in peers.items():
         print(f"{info['name']} ({uid}): {info['status']}")
 
+def print_key_value_message(msg):
+    for key in ["TYPE", "FROM", "TO", "USER_ID", "CONTENT", "STATUS", "TIMESTAMP", "MESSAGE_ID", "TOKEN"]:
+        if key in msg:
+            print(f"{key}: {msg[key]}")
+
 def print_messages():
     print("=== POSTS ===")
-    for uid, msg in posts:
-        name = peers.get(uid, {}).get('name', uid)
-        print(f"{name}: {msg}")
+    for post in posts:
+        print_key_value_message(post)
+        print()
+
     print("=== DMs ===")
-    for uid, msg in dms:
-        name = peers.get(uid, {}).get('name', uid)
-        print(f"{name} -> you: {msg}")
+    for dm in dms:
+        print_key_value_message(dm)
+        print()
