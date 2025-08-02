@@ -62,6 +62,10 @@ def send_profile(verbose=False):
     send_message(profile, BROADCAST_ADDR, verbose)
 
 def send_follow(target_user_id, verbose=False):
+    if '@' not in target_user_id:
+        print("Invalid user ID format. Expected user@ip.")
+        return
+    ip = target_user_id.split('@')[1]
     follow = {
         "TYPE": "FOLLOW",
         "FROM": my_user_id,
@@ -70,9 +74,13 @@ def send_follow(target_user_id, verbose=False):
         "TIMESTAMP": str(get_timestamp()),
         "TOKEN": f"{my_user_id}|{get_timestamp()+3600}|follow"
     }
-    send_message(follow, addr=target_user_id.split('@')[1], verbose=verbose)
+    send_message(follow, addr=ip, verbose=verbose)
 
 def send_unfollow(target_user_id, verbose=False):
+    if '@' not in target_user_id:
+        print("Invalid user ID format. Expected user@ip.")
+        return
+    ip = target_user_id.split('@')[1]
     unfollow = {
         "TYPE": "UNFOLLOW",
         "FROM": my_user_id,
@@ -81,7 +89,7 @@ def send_unfollow(target_user_id, verbose=False):
         "TIMESTAMP": str(get_timestamp()),
         "TOKEN": f"{my_user_id}|{get_timestamp()+3600}|follow"
     }
-    send_message(unfollow, addr=target_user_id.split('@')[1], verbose=verbose)
+    send_message(unfollow, addr=ip, verbose=verbose)
 
 def handle_message(msg, ip, verbose):
     mtype = msg.get("TYPE")
@@ -94,9 +102,9 @@ def handle_message(msg, ip, verbose):
             msg.get("STATUS")
         )
     elif mtype == "POST":
-        store_post(msg.get("USER_ID"), msg.get("CONTENT"))
+        store_post(msg)
     elif mtype == "DM":
-        store_dm(msg.get("FROM"), msg.get("CONTENT"))
+        store_dm(msg)
     elif mtype == "FOLLOW":
         from_user = msg.get("FROM")
         print(f"User {from_user} has followed you.")
