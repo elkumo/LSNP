@@ -120,13 +120,14 @@ Available commands:
                     to = parts[1]
                     dm_msg = create_dm(to)
                     if not VERBOSE:
-                        print(f"TYPE: {dm_msg['type']}\n"
+                        print(f"TYPE: {dm_msg['TYPE']}\n"
                               f"FROM: {dm_msg['FROM']}\n"
                               f"TO: {dm_msg['TO']}\n"
                               f"CONTENT: {dm_msg['CONTENT']}\n")
                     else:
                         print_key_value_message(dm_msg)
                     send_message(dm_msg, addr=to.split("@")[1], verbose=VERBOSE)
+                    print(f"You dmed {to}: {dm_msg['CONTENT']}")
                 except:
                     print("Usage: dm <user_id>")
             elif cmd.startswith("follow"): # Follow a user

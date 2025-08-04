@@ -129,6 +129,7 @@ def handle_message(msg, ip, verbose):
                   f"STATUS: {msg.get('STATUS')}\n")
     elif mtype == "DM":
         store_dm(msg)
+        print(f"DM from {msg.get('FROM')} to {msg.get('TO')}: {msg.get('CONTENT')}")
     elif mtype == "FOLLOW":
         from_user = msg.get("FROM")
         print(f"User {from_user} has followed you.")
