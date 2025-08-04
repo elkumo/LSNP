@@ -101,6 +101,25 @@ def group_message_msg():
         "TOKEN": f"{my_user_id}|{now + 3600}|group"
     }
 
+def create_tictactoe_invite():
+    global last_tictactoe_to, last_tictactoe_gid
+    to = input("Invite who (user@ip): ").strip()
+    gid = input("Game ID (gX): ").strip()
+    symbol = input("Your symbol (X/O): ").strip().upper()
+    now = get_timestamp()
+    last_tictactoe_to = to
+    last_tictactoe_gid = gid
+    return {
+        "TYPE": "TICTACTOE_INVITE",
+        "FROM": my_user_id,
+        "TO": to,
+        "GAMEID": gid,
+        "MESSAGE_ID": uuid.uuid4().hex[:8],
+        "SYMBOL": symbol,
+        "TIMESTAMP": str(now),
+        "TOKEN": f"{my_user_id}|{now + 3600}|game"
+    }
+
 def create_tictactoe_move():
     from game import games
     global last_tictactoe_to, last_tictactoe_gid
@@ -110,29 +129,6 @@ def create_tictactoe_move():
     symbol = input("Your symbol (X/O): ").strip().upper()
     now = get_timestamp()
     to = last_tictactoe_to or input("To (user@ip): ").strip()
-    turn = 1
-    if gid in games:
-        turn = games[gid].get("turn", 0) + 1
-    return {
-        "TYPE": "TICTACTOE_MOVE",
-        "FROM": my_user_id,
-        "TO": to,
-        "GAMEID": gid,
-        "MESSAGE_ID": uuid.uuid4().hex[:8],
-        "POSITION": pos,
-        "SYMBOL": symbol,
-        "TURN": str(turn),
-        "TOKEN": f"{my_user_id}|{now + 3600}|game"
-    }
-
-def create_tictactoe_move():
-    from game import games
-    gid = input("Game ID: ").strip()
-    pos = input("Position (0-8): ").strip()
-    symbol = input("Your symbol (X/O): ").strip().upper()
-    now = get_timestamp()
-    to = input("To (user@ip): ").strip()
-    # Auto-increment turn number
     turn = 1
     if gid in games:
         turn = games[gid].get("turn", 0) + 1
