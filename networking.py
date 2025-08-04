@@ -17,6 +17,9 @@ from game import (
 from constants import PORT, BROADCAST_ADDR, BUFFER_SIZE
 from utils import log, get_timestamp
 
+last_tictactoe_gid = None
+last_tictactoe_to = None
+
 # Load my_user_id and display_name from USER.csv
 def load_user_info(csv_path="USER.csv"):
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
@@ -203,12 +206,15 @@ def handle_message(msg, ip, verbose):
         print(f"User {from_user} has unfollowed you.")
     # Game
     elif mtype == "TICTACTOE_INVITE":
+        global last_tictactoe_gid, last_tictactoe_to
         if not validate_token(token, "game"):
             return
         store_tictactoe_invite(msg)
         inviter = msg["FROM"]
         gid = msg["GAMEID"]
         symbol = "O" if msg["SYMBOL"] == "X" else "X"
+        last_tictactoe_gid = gid
+        last_tictactoe_to = inviter
         if not verbose:
             print(f"{inviter} sent you a tictactoe invite with Game ID {gid}.\n"
                   f"You will be playing as {symbol}.\n"
