@@ -5,6 +5,8 @@ peers = {}
 posts = []
 dms = []
 following = set()
+groups = {}
+group_messages = []
 
 def follow_user(user_id):
     following.add(user_id)
@@ -14,6 +16,29 @@ def unfollow_user(user_id):
 
 def is_following(user_id):
     return user_id in following
+
+def create_group(group_id, name, members, creator):
+    groups[group_id] = {
+        'name': name,
+        'members': set(members),
+        'creator': creator
+    }
+
+def update_group(group_id, add=None, remove=None):
+    if group_id in groups:
+        if add:
+            groups[group_id]['members'].update(add)
+        if remove:
+            groups[group_id]['members'].difference_update(remove)
+
+def store_group_message(msg):
+    group_messages.append(msg)
+
+def is_group_member(group_id, user_id):
+    return group_id in groups and user_id in groups[group_id]["members"]
+
+def get_group_name(group_id):
+    return groups[group_id]["name"] if group_id in groups else group_id
 
 def update_peer(user_id, display_name, status):
     peers[user_id] = {'name': display_name, 'status': status}

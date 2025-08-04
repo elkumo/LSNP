@@ -4,10 +4,12 @@
 import socket
 import threading
 import csv
+import time
 from message_parser import parse_message, craft_message
 from peer_state import (
-    update_peer, store_post, store_dm,
-    follow_user, unfollow_user, is_following
+    update_peer, store_post, store_dm, follow_user,
+    unfollow_user, is_following, create_group, update_group,
+    store_group_message, is_group_member, get_group_name
 )
 from constants import PORT, BROADCAST_ADDR, BUFFER_SIZE
 from utils import log, get_timestamp
@@ -26,6 +28,20 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.bind(('', PORT))
 
+# Function to validate the token
+def validate_token(token, expected_scope):
+    try:
+        user_id, expiry, scope = token.split('|')
+        expiry = int(expiry)
+        if time.time() > expiry:
+            return False
+        if scope != expected_scope:
+            return False
+        return True
+    except Exception:
+        return False
+
+# Start a thread to listen for incoming messages
 def start_listener(verbose=False):
     def listen():
         while True:
@@ -96,7 +112,51 @@ def send_unfollow(target_user_id, verbose=False):
 
 def handle_message(msg, ip, verbose):
     mtype = msg.get("TYPE")
-    if mtype == "FOLLOW":
+    token = msg.get("TOKEN")
+    # Validate for POST and DM
+    if mtype in ["POST", "DM"]:
+        expected_scope = "broadcast" if mtype == "POST" else "chat"
+        if not validate_token(token, expected_scope):
+            if verbose:
+                print(f"Invalid token for {mtype} from {msg.get('USER_ID')}")
+            return  # Ignore message with invalid token
+    # Groups
+    elif mtype in ["GROUP_CREATE", "GROUP_UPDATE", "GROUP_MESSAGE"]:
+        if not validate_token(token, "group"):
+            if verbose:
+                print(f"Invalid token for {mtype} from {msg.get('FROM')}")
+            return
+    if mtype == "GROUP_CREATE":
+        group_id = msg.get("GROUP_ID")
+        group_name = msg.get("GROUP_NAME")
+        members = msg.get("MEMBERS", "").split(",")
+        creator = msg.get("FROM")
+        create_group(group_id, group_name, members, creator)
+        if my_user_id in members:
+            print(f"You’ve been added to {group_name}")
+        if verbose:
+            print(f"Created group {group_name} ({group_id}) with members: {members}")
+    elif mtype == "GROUP_UPDATE":
+        group_id = msg.get("GROUP_ID")
+        add = msg.get("ADD", "")
+        remove = msg.get("REMOVE", "")
+        add_list = [u for u in add.split(",") if u] if add else []
+        remove_list = [u for u in remove.split(",") if u] if remove else []
+        update_group(group_id, add=add_list, remove=remove_list)
+        print(f'The group “{get_group_name(group_id)}” member list was updated.')
+        if verbose:
+            print(f"Group {group_id} updated. Added: {add_list}, Removed: {remove_list}")
+    elif mtype == "GROUP_MESSAGE":
+        group_id = msg.get("GROUP_ID")
+        sender = msg.get("FROM")
+        content = msg.get("CONTENT")
+        if is_group_member(group_id, my_user_id):
+            store_group_message(msg)
+            print(f'{sender} sent “{content}”')
+        elif verbose:
+            print(f"Ignored group message for {group_id} (not a member).")
+    # Commands
+    elif mtype == "FOLLOW":
         from_user = msg.get("FROM")
         follow_user(from_user)
         print(f"User {from_user} has followed you.")
