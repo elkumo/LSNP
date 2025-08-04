@@ -8,12 +8,16 @@ WINNING_LINES = [
 
 def store_tictactoe_invite(msg):
     gid = msg["GAMEID"]
+    inviter = msg["FROM"]
+    invitee = msg["TO"]
+    inviter_symbol = msg["SYMBOL"]
+    invitee_symbol = "O" if inviter_symbol == "X" else "X"
     games[gid] = {
-        "players": [msg["FROM"], msg["TO"]],
-        "symbol": msg["SYMBOL"],
+        "players": [inviter, invitee],
+        "symbols": {inviter: inviter_symbol, invitee: invitee_symbol},
         "board": [" "] * 9,
         "turn": 0,
-        "next": msg["FROM"],
+        "next": inviter,
         "result": None,
         "winning_line": None
     }

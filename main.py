@@ -124,10 +124,12 @@ def create_tictactoe_invite():
 def create_tictactoe_move():
     from game import games
     global last_tictactoe_to, last_tictactoe_gid
-    # Use last values if available
     gid = last_tictactoe_gid or input("Game ID: ").strip()
     pos = input("Position (0-8): ").strip()
-    symbol = input("Your symbol (X/O): ").strip().upper()
+    # Get symbol from games dict if available
+    symbol = games[gid]["symbols"].get(my_user_id) if gid in games else None
+    if not symbol:
+        symbol = input("Your symbol (X/O): ").strip().upper()
     now = get_timestamp()
     to = last_tictactoe_to or input("To (user@ip): ").strip()
     turn = 1
