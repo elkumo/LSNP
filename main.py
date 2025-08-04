@@ -16,6 +16,8 @@ from utils import get_timestamp
 from constants import PROFILE_INTERVAL
 
 status = "Ready to connect!"  # Default status
+last_tictactoe_to = None
+last_tictactoe_gid = None
 
 def set_status(new_status):
     global status
@@ -99,19 +101,27 @@ def group_message_msg():
         "TOKEN": f"{my_user_id}|{now + 3600}|group"
     }
 
-def create_tictactoe_invite():
-    to = input("Invite who (user@ip): ").strip()
-    gid = input("Game ID (gX): ").strip()
+def create_tictactoe_move():
+    from game import games
+    global last_tictactoe_to, last_tictactoe_gid
+    # Use last values if available
+    gid = last_tictactoe_gid or input("Game ID: ").strip()
+    pos = input("Position (0-8): ").strip()
     symbol = input("Your symbol (X/O): ").strip().upper()
     now = get_timestamp()
+    to = last_tictactoe_to or input("To (user@ip): ").strip()
+    turn = 1
+    if gid in games:
+        turn = games[gid].get("turn", 0) + 1
     return {
-        "TYPE": "TICTACTOE_INVITE",
+        "TYPE": "TICTACTOE_MOVE",
         "FROM": my_user_id,
         "TO": to,
         "GAMEID": gid,
         "MESSAGE_ID": uuid.uuid4().hex[:8],
+        "POSITION": pos,
         "SYMBOL": symbol,
-        "TIMESTAMP": str(now),
+        "TURN": str(turn),
         "TOKEN": f"{my_user_id}|{now + 3600}|game"
     }
 
