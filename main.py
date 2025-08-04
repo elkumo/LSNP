@@ -5,6 +5,7 @@ import time
 import argparse
 import csv
 import uuid
+import random
 from game import print_board, store_tictactoe_invite, store_tictactoe_move, store_tictactoe_result
 from networking import (
     send_message, start_listener,
@@ -104,7 +105,7 @@ def group_message_msg():
 def create_tictactoe_invite():
     global last_tictactoe_to, last_tictactoe_gid
     to = input("Invite who (user@ip): ").strip()
-    gid = input("Game ID (gX): ").strip()
+    gid = f"g{random.randint(1, 255)}"
     symbol = input("Your symbol (X/O): ").strip().upper()
     now = get_timestamp()
     last_tictactoe_to = to
