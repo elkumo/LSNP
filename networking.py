@@ -5,7 +5,10 @@ import socket
 import threading
 import csv
 from message_parser import parse_message, craft_message
-from peer_state import update_peer, store_post, store_dm
+from peer_state import (
+    update_peer, store_post, store_dm,
+    follow_user, unfollow_user, is_following
+)
 from constants import PORT, BROADCAST_ADDR, BUFFER_SIZE
 from utils import log, get_timestamp
 
@@ -52,12 +55,12 @@ def send_ping(verbose=False):
     }
     send_message(ping, BROADCAST_ADDR, verbose)
 
-def send_profile(verbose=False):
+def send_profile(status="Ready to connect!", verbose=False):
     profile = {
         "TYPE": "PROFILE",
         "USER_ID": my_user_id,
         "DISPLAY_NAME": display_name,  # pulled from CSV
-        "STATUS": "Ready to connect!"
+        "STATUS": status
     }
     send_message(profile, BROADCAST_ADDR, verbose)
 
@@ -93,7 +96,24 @@ def send_unfollow(target_user_id, verbose=False):
 
 def handle_message(msg, ip, verbose):
     mtype = msg.get("TYPE")
-    if mtype == "PING":
+    if mtype == "FOLLOW":
+        from_user = msg.get("FROM")
+        follow_user(from_user)
+        print(f"User {from_user} has followed you.")
+    elif mtype == "UNFOLLOW":
+        from_user = msg.get("FROM")
+        unfollow_user(from_user)
+        print(f"User {from_user} has unfollowed you.")
+    elif mtype == "POST":
+        sender = msg.get("USER_ID")
+        if is_following(sender) or sender == my_user_id:
+            store_post(msg)
+            print(f"User {sender} has posted.\n"
+                  f"CONTENT: {msg.get('CONTENT')}\n")
+        else:
+            if verbose:
+                print(f"Ignored a post from {sender} because you are not following them.")
+    elif mtype == "PING":
         send_profile(verbose=verbose)
     elif mtype == "PROFILE":
         update_peer(
@@ -101,10 +121,17 @@ def handle_message(msg, ip, verbose):
             msg.get("DISPLAY_NAME"),
             msg.get("STATUS")
         )
-    elif mtype == "POST":
-        store_post(msg)
+        if verbose:
+            print(f"TYPE: {msg.get('TYPE')}\n"
+                  f"USER_ID: {msg.get('USER_ID')}\n"
+                  f"DISPLAY_NAME: {msg.get('DISPLAY_NAME')}\n"
+                  f"STATUS: {msg.get('STATUS')}\n")
+        else:
+            print(f"DISPLAY_NAME: {msg.get('DISPLAY_NAME')}\n"
+                  f"STATUS: {msg.get('STATUS')}\n")
     elif mtype == "DM":
         store_dm(msg)
+        print(f"DM from {msg.get('FROM')} to {msg.get('TO')}: {msg.get('CONTENT')}")
     elif mtype == "FOLLOW":
         from_user = msg.get("FROM")
         print(f"User {from_user} has followed you.")
