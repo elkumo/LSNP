@@ -52,12 +52,12 @@ def send_ping(verbose=False):
     }
     send_message(ping, BROADCAST_ADDR, verbose)
 
-def send_profile(verbose=False):
+def send_profile(status="Ready to connect!", verbose=False):
     profile = {
         "TYPE": "PROFILE",
         "USER_ID": my_user_id,
         "DISPLAY_NAME": display_name,  # pulled from CSV
-        "STATUS": "Ready to connect!"
+        "STATUS": status
     }
     send_message(profile, BROADCAST_ADDR, verbose)
 
@@ -101,6 +101,14 @@ def handle_message(msg, ip, verbose):
             msg.get("DISPLAY_NAME"),
             msg.get("STATUS")
         )
+        if verbose:
+            print(f"TYPE: {msg.get('TYPE')}\n"
+                  f"USER_ID: {msg.get('USER_ID')}\n"
+                  f"DISPLAY_NAME: {msg.get('DISPLAY_NAME')}\n"
+                  f"STATUS: {msg.get('STATUS')}\n")
+        else:
+            print(f"DISPLAY_NAME: {msg.get('DISPLAY_NAME')}\n"
+                  f"STATUS: {msg.get('STATUS')}\n")
     elif mtype == "POST":
         store_post(msg)
     elif mtype == "DM":
