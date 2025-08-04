@@ -106,8 +106,10 @@ def handle_message(msg, ip, verbose):
         print(f"User {from_user} has unfollowed you.")
     elif mtype == "POST":
         sender = msg.get("USER_ID")
-        if is_following(sender):
+        if is_following(sender) or sender == my_user_id:
             store_post(msg)
+            print(f"User {sender} has posted.\n"
+                  f"CONTENT: {msg.get('CONTENT')}\n")
         else:
             if verbose:
                 print(f"Ignored a post from {sender} because you are not following them.")
