@@ -258,6 +258,8 @@ Available commands:
                 send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
                 store_tictactoe_invite(msg)
                 print_board(msg["GAMEID"])
+                print(f"You sent a tictactoe invite to {msg['TO']} with Game ID {msg['GAMEID']}.\n"
+                      f"You will be playing as {msg['SYMBOL']}\n")
             elif cmd == "tictactoe move":
                 msg = create_tictactoe_move()
                 send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
