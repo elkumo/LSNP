@@ -10,7 +10,7 @@ from networking import (
     send_profile, send_ping,
     send_follow, send_unfollow
 )
-from peer_state import print_known_peers, print_messages
+from peer_state import print_known_peers, print_messages, print_group_messages
 from utils import get_timestamp
 from constants import PROFILE_INTERVAL
 
@@ -53,6 +53,49 @@ def create_dm(target):
         "TIMESTAMP": str(now),
         "MESSAGE_ID": message_id,
         "TOKEN": f"{my_user_id}|{now + 3600}|chat"
+    }
+
+def create_group_msg():
+    group_id = input("Group ID: ").strip()
+    group_name = input("Group Name: ").strip()
+    members = input("Members (comma-separated user@ip): ").strip()
+    now = get_timestamp()
+    return {
+        "TYPE": "GROUP_CREATE",
+        "FROM": my_user_id,
+        "GROUP_ID": group_id,
+        "GROUP_NAME": group_name,
+        "MEMBERS": members,
+        "TIMESTAMP": str(now),
+        "TOKEN": f"{my_user_id}|{now + 3600}|group"
+    }
+
+def update_group_msg():
+    group_id = input("Group ID: ").strip()
+    add = input("Add members (comma-separated user@ip, blank for none): ").strip()
+    remove = input("Remove members (comma-separated user@ip, blank for none): ").strip()
+    now = get_timestamp()
+    return {
+        "TYPE": "GROUP_UPDATE",
+        "FROM": my_user_id,
+        "GROUP_ID": group_id,
+        "ADD": add,
+        "REMOVE": remove,
+        "TIMESTAMP": str(now),
+        "TOKEN": f"{my_user_id}|{now + 3600}|group"
+    }
+
+def group_message_msg():
+    group_id = input("Group ID: ").strip()
+    content = input("Message: ").strip()
+    now = get_timestamp()
+    return {
+        "TYPE": "GROUP_MESSAGE",
+        "FROM": my_user_id,
+        "GROUP_ID": group_id,
+        "CONTENT": content,
+        "TIMESTAMP": str(now),
+        "TOKEN": f"{my_user_id}|{now + 3600}|group"
     }
 
 def print_key_value_message(msg):
@@ -98,11 +141,14 @@ Available commands:
   dm <user_id>                        - Send a direct message
   follow <user_id>                    - Follow a user
   unfollow <user_id>                  - Unfollow a user
-  profile                             - Send your profile
+  group create                        - Create a group
+  group update                        - Update a group
+  group msg                           - Send a message to a group
   ping                                - Manually broadcast a PING
-  status <new_status>                 - Update your status
-  show peers                          - Show known peers
+  profile                             - Send your profile
   show messages                       - Show received posts and DMs
+  show peers                          - Show known peers
+  status <new_status>                 - Update your status
   exit                                - Quit the program
 """)
             elif cmd.startswith("post"): # Create a post
@@ -148,6 +194,17 @@ Available commands:
                 new_status = cmd[len("status") :].strip()
                 set_status(new_status)
                 print(f"Status updated to: {status}")
+            elif cmd.startswith("group create"):
+                group_msg = create_group_msg()
+                send_message(group_msg, verbose=VERBOSE)
+            elif cmd.startswith("group update"):
+                group_msg = update_group_msg()
+                send_message(group_msg, verbose=VERBOSE)
+            elif cmd.startswith("group msg"):
+                group_msg = group_message_msg()
+                send_message(group_msg, verbose=VERBOSE)
+            elif cmd == "show group messages":
+                print_group_messages()
             elif cmd == "exit": # Exit the program
                 print("Exiting LSNP...")
                 break
