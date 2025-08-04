@@ -1,5 +1,11 @@
 games = {}
 
+WINNING_LINES = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],  # rows
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],  # columns
+    [0, 4, 8], [2, 4, 6]              # diagonals
+]
+
 def store_tictactoe_invite(msg):
     gid = msg["GAMEID"]
     games[gid] = {
@@ -16,10 +22,19 @@ def store_tictactoe_move(msg):
     gid = msg["GAMEID"]
     pos = int(msg["POSITION"])
     sym = msg["SYMBOL"]
-    if gid in games:
-        games[gid]["board"][pos] = sym
-        games[gid]["turn"] = int(msg["TURN"])
-        games[gid]["next"] = msg["TO"]
+    if gid not in games:
+        return
+    if games[gid]["board"][pos] != " ":
+        print("Invalid move: cell already taken.")
+        return
+    games[gid]["board"][pos] = sym
+    games[gid]["turn"] = int(msg["TURN"])
+    games[gid]["next"] = msg["TO"]
+    # Check for win/draw
+    result, line = check_result(games[gid]["board"], sym)
+    if result:
+        games[gid]["result"] = result
+        games[gid]["winning_line"] = line
 
 def store_tictactoe_result(msg):
     gid = msg["GAMEID"]
@@ -39,3 +54,11 @@ def print_board(gid):
             print(f"Winning line: {games[gid]['winning_line']}")
     else:
         print(f"Next turn: {games[gid]['next']}")
+
+def check_result(board, symbol):
+    for line in WINNING_LINES:
+        if all(board[i] == symbol for i in line):
+            return f"{symbol} wins", line
+    if all(cell != " " for cell in board):
+        return "Draw", None
+    return None, None

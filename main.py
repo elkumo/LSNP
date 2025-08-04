@@ -245,9 +245,11 @@ Available commands:
             elif cmd == "tictactoe invite":
                 msg = create_tictactoe_invite()
                 send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
+                print_board(msg["GAMEID"])
             elif cmd == "tictactoe move":
                 msg = create_tictactoe_move()
                 send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
+                print_board(msg["GAMEID"])
             elif cmd == "exit": # Exit the program
                 print("Exiting LSNP...")
                 break
