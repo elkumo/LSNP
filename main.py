@@ -5,7 +5,7 @@ import time
 import argparse
 import csv
 import uuid
-from game import print_board, store_tictactoe_invite
+from game import print_board, store_tictactoe_invite, store_tictactoe_move, store_tictactoe_result
 from networking import (
     send_message, start_listener,
     send_profile, send_ping,
@@ -116,12 +116,16 @@ def create_tictactoe_invite():
     }
 
 def create_tictactoe_move():
+    from game import games
     gid = input("Game ID: ").strip()
     pos = input("Position (0-8): ").strip()
     symbol = input("Your symbol (X/O): ").strip().upper()
-    turn = input("Turn number: ").strip()
     now = get_timestamp()
     to = input("To (user@ip): ").strip()
+    # Auto-increment turn number
+    turn = 1
+    if gid in games:
+        turn = games[gid].get("turn", 0) + 1
     return {
         "TYPE": "TICTACTOE_MOVE",
         "FROM": my_user_id,
@@ -130,7 +134,7 @@ def create_tictactoe_move():
         "MESSAGE_ID": uuid.uuid4().hex[:8],
         "POSITION": pos,
         "SYMBOL": symbol,
-        "TURN": turn,
+        "TURN": str(turn),
         "TOKEN": f"{my_user_id}|{now + 3600}|game"
     }
 
@@ -251,6 +255,7 @@ Available commands:
             elif cmd == "tictactoe move":
                 msg = create_tictactoe_move()
                 send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
+                store_tictactoe_move(msg)  # Update local board immediately
                 print_board(msg["GAMEID"])
             elif cmd == "exit": # Exit the program
                 print("Exiting LSNP...")
