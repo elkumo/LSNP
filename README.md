@@ -1,5 +1,5 @@
 # LSNP
-Local Social Networking Protocol (LSNP)
+Local Social Networking Protocol (LSNP) Machine Project requirement for the course CSNETWK
 
 ## How to run
 1. Create a 'USER.csv' file. Refer to the sample file in /Sample/USER.csv'
