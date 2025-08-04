@@ -39,6 +39,9 @@ Local Social Networking Protocol (LSNP) Machine Project requirement for the cour
 - [ ] Group Management
 - [ ] Game Support (Tic Tac Toe)
 
+## AI Usage
+AI was used to generate the intial project structure, parsing logic, and some of the protocol compliance test cases. It also assisted in generating documentation and comments throughout the codebase.
+
 ## Credits
 - [@elkumo](https://github.com/elkumo)
 - [@ixelated](https://github.com/ixelated)
