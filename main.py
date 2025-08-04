@@ -5,7 +5,7 @@ import time
 import argparse
 import csv
 import uuid
-from game import print_board
+from game import print_board, store_tictactoe_invite
 from networking import (
     send_message, start_listener,
     send_profile, send_ping,
@@ -246,6 +246,7 @@ Available commands:
             elif cmd == "tictactoe invite":
                 msg = create_tictactoe_invite()
                 send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
+                store_tictactoe_invite(msg)
                 print_board(msg["GAMEID"])
             elif cmd == "tictactoe move":
                 msg = create_tictactoe_move()
