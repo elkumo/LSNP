@@ -68,3 +68,9 @@ def print_messages():
     for dm in dms:
         print_key_value_message(dm)
         print()
+
+def print_group_messages():
+    print("=== GROUP MESSAGES ===")
+    for msg in group_messages:
+        print_key_value_message(msg)
+        print()
