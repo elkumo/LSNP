@@ -5,7 +5,10 @@ import socket
 import threading
 import csv
 from message_parser import parse_message, craft_message
-from peer_state import update_peer, store_post, store_dm
+from peer_state import (
+    update_peer, store_post, store_dm,
+    follow_user, unfollow_user, is_following
+)
 from constants import PORT, BROADCAST_ADDR, BUFFER_SIZE
 from utils import log, get_timestamp
 
@@ -93,7 +96,22 @@ def send_unfollow(target_user_id, verbose=False):
 
 def handle_message(msg, ip, verbose):
     mtype = msg.get("TYPE")
-    if mtype == "PING":
+    if mtype == "FOLLOW":
+        from_user = msg.get("FROM")
+        follow_user(from_user)
+        print(f"User {from_user} has followed you.")
+    elif mtype == "UNFOLLOW":
+        from_user = msg.get("FROM")
+        unfollow_user(from_user)
+        print(f"User {from_user} has unfollowed you.")
+    elif mtype == "POST":
+        sender = msg.get("USER_ID")
+        if is_following(sender):
+            store_post(msg)
+        else:
+            if verbose:
+                print(f"Ignored a post from {sender} because you are not following them.")
+    elif mtype == "PING":
         send_profile(verbose=verbose)
     elif mtype == "PROFILE":
         update_peer(
@@ -109,8 +127,6 @@ def handle_message(msg, ip, verbose):
         else:
             print(f"DISPLAY_NAME: {msg.get('DISPLAY_NAME')}\n"
                   f"STATUS: {msg.get('STATUS')}\n")
-    elif mtype == "POST":
-        store_post(msg)
     elif mtype == "DM":
         store_dm(msg)
     elif mtype == "FOLLOW":

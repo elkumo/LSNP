@@ -4,6 +4,16 @@
 peers = {}
 posts = []
 dms = []
+following = set()
+
+def follow_user(user_id):
+    following.add(user_id)
+
+def unfollow_user(user_id):
+    following.discard(user_id)
+
+def is_following(user_id):
+    return user_id in following
 
 def update_peer(user_id, display_name, status):
     peers[user_id] = {'name': display_name, 'status': status}
