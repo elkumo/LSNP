@@ -5,6 +5,7 @@ import time
 import argparse
 import csv
 import uuid
+from game import print_board
 from networking import (
     send_message, start_listener,
     send_profile, send_ping,
