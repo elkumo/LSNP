@@ -98,6 +98,41 @@ def group_message_msg():
         "TOKEN": f"{my_user_id}|{now + 3600}|group"
     }
 
+def create_tictactoe_invite():
+    to = input("Invite who (user@ip): ").strip()
+    gid = input("Game ID (gX): ").strip()
+    symbol = input("Your symbol (X/O): ").strip().upper()
+    now = get_timestamp()
+    return {
+        "TYPE": "TICTACTOE_INVITE",
+        "FROM": my_user_id,
+        "TO": to,
+        "GAMEID": gid,
+        "MESSAGE_ID": uuid.uuid4().hex[:8],
+        "SYMBOL": symbol,
+        "TIMESTAMP": str(now),
+        "TOKEN": f"{my_user_id}|{now + 3600}|game"
+    }
+
+def create_tictactoe_move():
+    gid = input("Game ID: ").strip()
+    pos = input("Position (0-8): ").strip()
+    symbol = input("Your symbol (X/O): ").strip().upper()
+    turn = input("Turn number: ").strip()
+    now = get_timestamp()
+    to = input("To (user@ip): ").strip()
+    return {
+        "TYPE": "TICTACTOE_MOVE",
+        "FROM": my_user_id,
+        "TO": to,
+        "GAMEID": gid,
+        "MESSAGE_ID": uuid.uuid4().hex[:8],
+        "POSITION": pos,
+        "SYMBOL": symbol,
+        "TURN": turn,
+        "TOKEN": f"{my_user_id}|{now + 3600}|game"
+    }
+
 def print_key_value_message(msg):
     for key in ["TYPE", "FROM", "TO", "CONTENT", "TIMESTAMP", "MESSAGE_ID", "TOKEN"]:
         if key in msg:
@@ -149,6 +184,8 @@ Available commands:
   show messages                       - Show received posts and DMs
   show peers                          - Show known peers
   status <new_status>                 - Update your status
+  tictactoe invite                    - Invite a user to play Tic Tac Toe
+  tictactoe move                      - Make a move in a Tic Tac Toe game
   exit                                - Quit the program
 """)
             elif cmd.startswith("post"): # Create a post
@@ -205,6 +242,12 @@ Available commands:
                 send_message(group_msg, verbose=VERBOSE)
             elif cmd == "show group messages":
                 print_group_messages()
+            elif cmd == "tictactoe invite":
+                msg = create_tictactoe_invite()
+                send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
+            elif cmd == "tictactoe move":
+                msg = create_tictactoe_move()
+                send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
             elif cmd == "exit": # Exit the program
                 print("Exiting LSNP...")
                 break

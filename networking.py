@@ -11,6 +11,9 @@ from peer_state import (
     unfollow_user, is_following, create_group, update_group,
     store_group_message, is_group_member, get_group_name
 )
+from game import (
+    store_tictactoe_invite, store_tictactoe_move, store_tictactoe_result, print_board
+)
 from constants import PORT, BROADCAST_ADDR, BUFFER_SIZE
 from utils import log, get_timestamp
 
@@ -198,3 +201,20 @@ def handle_message(msg, ip, verbose):
     elif mtype == "UNFOLLOW":
         from_user = msg.get("FROM")
         print(f"User {from_user} has unfollowed you.")
+    # Game
+    elif mtype == "TICTACTOE_INVITE":
+        if not validate_token(token, "game"):
+            return
+        store_tictactoe_invite(msg)
+        if not verbose:
+            print(f"{msg['FROM'].split('@')[0]} is inviting you to play tic-tac-toe.")
+        else:
+            print(msg)
+    elif mtype == "TICTACTOE_MOVE":
+        if not validate_token(token, "game"):
+            return
+        store_tictactoe_move(msg)
+        print_board(msg["GAMEID"])
+    elif mtype == "TICTACTOE_RESULT":
+        store_tictactoe_result(msg)
+        print_board(msg["GAMEID"])
