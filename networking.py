@@ -220,8 +220,6 @@ def handle_message(msg, ip, verbose):
         print(f"{inviter} sent you a tictactoe invite with Game ID {gid}.\n"
               f"You will be playing as {symbol}.\n"
               f"Enter \"tictactoe move\" to play!\n")
-        else:
-            print(msg)
     elif mtype == "TICTACTOE_MOVE":
         if not validate_token(token, "game"):
             return
