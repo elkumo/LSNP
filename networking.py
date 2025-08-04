@@ -206,8 +206,13 @@ def handle_message(msg, ip, verbose):
         if not validate_token(token, "game"):
             return
         store_tictactoe_invite(msg)
+        inviter = msg["FROM"]
+        gid = msg["GAMEID"]
+        symbol = "O" if msg["SYMBOL"] == "X" else "X"
         if not verbose:
-            print(f"{msg['FROM'].split('@')[0]} is inviting you to play tic-tac-toe.")
+            print(f"{inviter} sent you a tictactoe invite with Game ID {gid}.\n"
+                  f"You will be playing as {symbol}.\n"
+                  f"Enter \"tictactoe move\" to play!\n")
         else:
             print(msg)
     elif mtype == "TICTACTOE_MOVE":
