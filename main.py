@@ -14,6 +14,12 @@ from peer_state import print_known_peers, print_messages
 from utils import get_timestamp
 from constants import PROFILE_INTERVAL
 
+status = "Ready to connect!"  # Default status
+
+def set_status(new_status):
+    global status
+    status = new_status
+
 def load_my_user_id(csv_path="USER.csv"):
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
@@ -94,6 +100,7 @@ Available commands:
   unfollow <user_id>                  - Unfollow a user
   profile                             - Send your profile
   ping                                - Manually broadcast a PING
+  status <new_status>                 - Update your status
   show peers                          - Show known peers
   show messages                       - Show received posts and DMs
   exit                                - Quit the program
@@ -129,13 +136,17 @@ Available commands:
                 to = cmd[9:].strip()
                 send_unfollow(to, verbose=VERBOSE)
             elif cmd == "profile": # Manually broadcast profile
-                send_profile(verbose=VERBOSE)
+                send_profile(status=status, verbose=VERBOSE)
             elif cmd == "ping": # Manually broadcast a ping
                 send_ping(verbose=VERBOSE)
             elif cmd == "show peers": # Show known peers
                 print_known_peers()
             elif cmd == "show messages": # Show received posts and DMs
                 print_messages()
+            elif cmd.startswith("status"):
+                new_status = cmd[len("status") :].strip()
+                set_status(new_status)
+                print(f"Status updated to: {status}")
             elif cmd == "exit": # Exit the program
                 print("Exiting LSNP...")
                 break
