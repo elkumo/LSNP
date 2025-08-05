@@ -4,6 +4,7 @@
 import socket
 import threading
 import csv
+import os
 from message_parser import parse_message, craft_message
 from peer_state import (
     update_peer, store_post, store_dm,
