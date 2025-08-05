@@ -5,7 +5,11 @@ import socket
 import threading
 import csv
 import time
+import base64
+import os
 from message_parser import parse_message, craft_message
+from avatar_likes import handle_avatar_message
+from file_transfer import handle_avatar_field
 from peer_state import (
     update_peer, store_post, store_dm, follow_user,
     unfollow_user, is_following, create_group, update_group,
@@ -20,6 +24,14 @@ from utils import log, get_timestamp
 last_tictactoe_gid = None
 last_tictactoe_to = None
 last_tictactoe_symbol = None
+
+def load_avatar():
+    avatar_path = "data/my_avatar.png"
+    if not os.path.exists(avatar_path):
+        return None, None, None
+    with open(avatar_path, "rb") as f:
+        data = base64.b64encode(f.read()).decode("utf-8")
+    return "image/png", "base64", data
 
 # Load my_user_id and display_name from USER.csv
 def load_user_info(csv_path="USER.csv"):
@@ -79,12 +91,17 @@ def send_ping(verbose=False):
     send_message(ping, BROADCAST_ADDR, verbose)
 
 def send_profile(status="Ready to connect!", verbose=False):
+    avatar_type, avatar_encoding, avatar_data = load_avatar()
     profile = {
         "TYPE": "PROFILE",
         "USER_ID": my_user_id,
-        "DISPLAY_NAME": display_name,  # pulled from CSV
+        "DISPLAY_NAME": display_name,
         "STATUS": status
     }
+    if avatar_type and avatar_encoding and avatar_data:
+        profile["AVATAR_TYPE"] = avatar_type
+        profile["AVATAR_ENCODING"] = avatar_encoding
+        profile["AVATAR_DATA"] = avatar_data
     send_message(profile, BROADCAST_ADDR, verbose)
 
 def send_follow(target_user_id, verbose=False):
@@ -188,11 +205,22 @@ def handle_message(msg, ip, verbose):
             msg.get("DISPLAY_NAME"),
             msg.get("STATUS")
         )
+        if "AVATAR_TYPE" in msg and "AVATAR_ENCODING" in msg and "AVATAR_DATA" in msg:
+            avatar = {
+                "AVATAR_TYPE": msg["AVATAR_TYPE"],
+                "AVATAR_ENCODING": msg["AVATAR_ENCODING"],
+                "AVATAR_DATA": msg["AVATAR_DATA"]
+            }
+            handle_avatar_message({"USER_ID": msg["USER_ID"], "AVATAR": avatar})
+            avatar_str = f"data:{msg['AVATAR_TYPE']};{msg['AVATAR_ENCODING']},{msg['AVATAR_DATA']}"
+            handle_avatar_field({"USER_ID": msg["USER_ID"], "AVATAR": avatar_str})
         if verbose:
             print(f"TYPE: {msg.get('TYPE')}\n"
                   f"USER_ID: {msg.get('USER_ID')}\n"
                   f"DISPLAY_NAME: {msg.get('DISPLAY_NAME')}\n"
                   f"STATUS: {msg.get('STATUS')}\n")
+            if "AVATAR_TYPE" in msg:
+                print(f"AVATAR_TYPE: {msg.get('AVATAR_TYPE')}")
         else:
             print(f"DISPLAY_NAME: {msg.get('DISPLAY_NAME')}\n"
                   f"STATUS: {msg.get('STATUS')}\n")
