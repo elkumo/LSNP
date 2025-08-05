@@ -13,8 +13,10 @@ from networking import (
 from peer_state import print_known_peers, print_messages
 from utils import get_timestamp
 from constants import PROFILE_INTERVAL
-from avatar_likes import (handle_avatar_message, handle_like_message,
-    print_all_avatars, print_likes_summary, get_avatar, get_likes)
+from file_transfer import print_all_avatars
+from avatar_likes import print_likes_summary
+from peer_state import print_key_value_message
+
 from file_transfer import(handle_avatar_field, handle_file_offer, handle_file_chunk)
 
 status = "Ready to connect!"  # Default status
@@ -155,18 +157,30 @@ Available commands:
                 new_status = cmd[len("status") :].strip()
                 set_status(new_status)
                 print(f"Status updated to: {status}")
-            elif cmd.startswith("avatar "):
-                user = cmd.split(" ", 1)[1]
-                print(get_avatar(user))
+          #deleted avatar command -- here--
             elif cmd == "avatars":
                 print_all_avatars()
-            elif cmd.startswith("like "): # Like a post (added almost 4am)
-                post_id = cmd.split(" ", 1)[1]
+            elif cmd.startswith("like "): ## updated like avatars
+                parts = cmd.split()
+                if len(parts) < 3:
+                    print("Usage: like <id> <type> (type: message|dm|avatar|file)")
+                    continue
+                target_id = parts[1]
+                id_type = parts[2].lower()
                 like_msg = {
                     "TYPE": "LIKE",
                     "FROM": my_user_id,
-                    "MESSAGE_ID": post_id
                 }
+                if id_type == "message":
+                    like_msg["MESSAGE_ID"] = target_id
+                elif id_type == "dm":
+                    like_msg["DM_ID"] = target_id
+                elif id_type == "avatar":
+                    like_msg["AVATAR_ID"] = target_id
+                elif id_type == "file":
+                    like_msg["FILE_ID"] = target_id
+                else:
+                    like_msg["ID"] = target_id
                 send_message(like_msg, verbose=VERBOSE)
             elif cmd == "likes":
                 print_likes_summary()

@@ -29,7 +29,7 @@ def print_known_peers():
         print(f"{info['name']} ({uid}): {info['status']}")
 
 def print_key_value_message(msg):
-    for key in ["TYPE", "FROM", "TO", "USER_ID", "CONTENT", "STATUS", "TIMESTAMP", "MESSAGE_ID", "TOKEN"]:
+    for key in ["TYPE", "FROM", "TO", "USER_ID", "CONTENT", "STATUS", "TIMESTAMP", "MESSAGE_ID","AVATAR_ID", "TOKEN"]:
         if key in msg:
             print(f"{key}: {msg[key]}")
 

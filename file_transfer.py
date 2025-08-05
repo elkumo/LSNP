@@ -46,6 +46,12 @@ def handle_avatar_field(msg):
             print(f"[AVATAR] Saved avatar image for {user_id} at {path}")
         except Exception as e:
             print(f"[AVATAR] Failed to save avatar: {e}")
+# print all avatars
+def print_all_avatars():
+    print("=== Avatars ===")
+    for fname in os.listdir(FILES_DIR):
+        if "_avatar." in fname:
+            print(f"Avatar file: {fname} | avatar_id: {fname}")
 
 
 # FILE_OFFER Handling ---

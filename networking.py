@@ -11,7 +11,7 @@ from peer_state import (
 )
 from constants import PORT, BROADCAST_ADDR, BUFFER_SIZE
 from utils import log, get_timestamp
-from avatar_likes import handle_avatar_message, handle_like_message
+from avatar_likes import handle_like_message
 from file_transfer import handle_avatar_field, handle_file_offer, handle_file_chunk
 ## added this ^^
 # Load my_user_id and display_name from USER.csv
@@ -56,14 +56,21 @@ def send_ping(verbose=False):
         "USER_ID": my_user_id
     }
     send_message(ping, BROADCAST_ADDR, verbose)
-
+#send profile. changed 10:57am
 def send_profile(status="Ready to connect!", verbose=False):
     profile = {
         "TYPE": "PROFILE",
         "USER_ID": my_user_id,
-        "DISPLAY_NAME": display_name,  # pulled from CSV
+        "DISPLAY_NAME": display_name,
         "STATUS": status
     }
+    # Attach avatar if it exists
+    avatar_path = f"data/files/{my_user_id.replace('@', '_')}_avatar.png"
+    if os.path.exists(avatar_path):
+        with open(avatar_path, "rb") as img:
+            encoded = base64.b64encode(img.read()).decode("utf-8")
+            profile["AVATAR"] = f"data:image/png;base64,{encoded}"
+
     send_message(profile, BROADCAST_ADDR, verbose)
 
 def send_follow(target_user_id, verbose=False):
@@ -95,6 +102,9 @@ def send_unfollow(target_user_id, verbose=False):
         "TOKEN": f"{my_user_id}|{get_timestamp()+3600}|follow"
     }
     send_message(unfollow, addr=ip, verbose=verbose)
+
+def handle_avatar_message(msg):
+    print(f"[AVATAR] Avatar received from {msg.get('USER_ID')}")
 
 def handle_message(msg, ip, verbose):
     mtype = msg.get("TYPE")
