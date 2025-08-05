@@ -11,7 +11,9 @@ from peer_state import (
 )
 from constants import PORT, BROADCAST_ADDR, BUFFER_SIZE
 from utils import log, get_timestamp
-
+from avatar_likes import handle_avatar_message, handle_like_message
+from file_transfer import handle_avatar_field, handle_file_offer, handle_file_chunk
+## added this ^^
 # Load my_user_id and display_name from USER.csv
 def load_user_info(csv_path="USER.csv"):
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
@@ -138,3 +140,13 @@ def handle_message(msg, ip, verbose):
     elif mtype == "UNFOLLOW":
         from_user = msg.get("FROM")
         print(f"User {from_user} has unfollowed you.")
+        # Avatar, Like, and File Transfer handlers, added
+        if "AVATAR" in msg:
+            handle_avatar_message(msg)
+            handle_avatar_field(msg)
+        if mtype == "LIKE":
+            handle_like_message(msg)
+        if mtype == "FILE_OFFER":
+            handle_file_offer(msg)
+        if mtype == "FILE_CHUNK":
+            handle_file_chunk(msg)
