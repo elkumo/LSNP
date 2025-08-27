@@ -1,4 +1,4 @@
-# Current Implementation: Milestone 1 and 2
+# Current Implementation: Milestone 1-3
 # By Alexi Alberto and Elmo Mandigma
 
 import socket
@@ -41,11 +41,14 @@ def validate_token(token, expected_scope):
         user_id, expiry, scope = token.split('|')
         expiry = int(expiry)
         if time.time() > expiry:
+            print(f"[TOKEN] Expired token: {token}")
             return False
         if scope != expected_scope:
+            print(f"[TOKEN] Invalid scope: {scope} (expected: {expected_scope})")
             return False
         return True
-    except Exception:
+    except Exception as e:
+        print(f"[TOKEN] Malformed token: {token}, Error: {e}")
         return False
 
 # Start a thread to listen for incoming messages
@@ -69,7 +72,10 @@ def send_message(msg_dict, addr=BROADCAST_ADDR, verbose=False):
     message = craft_message(msg_dict)
     if verbose:
         log(f"> SEND to {addr}: {msg_dict}", verbose)
-    sock.sendto(message, (addr, PORT))
+    try:
+        sock.sendto(message, (addr, PORT))
+    except Exception as e:
+        print(f"[ERROR] Failed to send message to {addr}: {e}")
 
 def send_ping(verbose=False):
     ping = {
@@ -206,14 +212,15 @@ def handle_message(msg, ip, verbose):
         from_user = msg.get("FROM")
         print(f"User {from_user} has unfollowed you.")
     # Game
-    elif mtype == "TICTACTOE_INVITE":
-        global last_tictactoe_gid, last_tictactoe_to, last_tictactoe_symbol
+    if mtype == "TICTACTOE_INVITE":
         if not validate_token(token, "game"):
+            print("[DEBUG] Invalid token for TICTACTOE_INVITE")
             return
         store_tictactoe_invite(msg)
         inviter = msg["FROM"]
         gid = msg["GAMEID"]
         symbol = "O" if msg["SYMBOL"] == "X" else "X"
+        global last_tictactoe_gid, last_tictactoe_to, last_tictactoe_symbol
         last_tictactoe_gid = gid
         last_tictactoe_to = inviter
         last_tictactoe_symbol = symbol
@@ -222,6 +229,7 @@ def handle_message(msg, ip, verbose):
               f"Enter \"tictactoe move\" to play!\n")
     elif mtype == "TICTACTOE_MOVE":
         if not validate_token(token, "game"):
+            print("[DEBUG] Invalid token for TICTACTOE_MOVE")
             return
         store_tictactoe_move(msg)
         print_board(msg["GAMEID"])

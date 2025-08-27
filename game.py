@@ -1,12 +1,12 @@
-games = {}
+games = {} # Dictionary to store game states
 
-WINNING_LINES = [
+WINNING_LINES = [ # Define winning lines for Tic Tac Toe
     [0, 1, 2], [3, 4, 5], [6, 7, 8],  # rows
     [0, 3, 6], [1, 4, 7], [2, 5, 8],  # columns
     [0, 4, 8], [2, 4, 6]              # diagonals
 ]
 
-def store_tictactoe_invite(msg):
+def store_tictactoe_invite(msg): # Store a Tic Tac Toe game invitation
     gid = msg["GAMEID"]
     inviter = msg["FROM"]
     invitee = msg["TO"]
@@ -22,7 +22,7 @@ def store_tictactoe_invite(msg):
         "winning_line": None
     }
 
-def store_tictactoe_move(msg):
+def store_tictactoe_move(msg): # Store a Tic Tac Toe move
     gid = msg["GAMEID"]
     pos = int(msg["POSITION"])
     sym = msg["SYMBOL"]
@@ -40,13 +40,13 @@ def store_tictactoe_move(msg):
         games[gid]["result"] = result
         games[gid]["winning_line"] = line
 
-def store_tictactoe_result(msg):
+def store_tictactoe_result(msg): # Store the result of a Tic Tac Toe game
     gid = msg["GAMEID"]
     if gid in games:
         games[gid]["result"] = msg["RESULT"]
         games[gid]["winning_line"] = msg.get("WINNING_LINE")
 
-def print_board(gid):
+def print_board(gid): # Print the Tic Tac Toe board and game status
     if gid not in games:
         print("No such game.")
         return
@@ -59,7 +59,7 @@ def print_board(gid):
     else:
         print(f"Next turn: {games[gid]['next']}")
 
-def check_result(board, symbol):
+def check_result(board, symbol): # Check the Tic Tac Toe board for a win or draw
     for line in WINNING_LINES:
         if all(board[i] == symbol for i in line):
             return f"{symbol} wins", line

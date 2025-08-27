@@ -1,4 +1,4 @@
-# Current Implementation: Milestone 1 and 2
+# Current Implementation: Milestone 1-3
 # By Alexi Alberto and Elmo Mandigma
 
 import time
@@ -12,7 +12,7 @@ from networking import (
     send_profile, send_ping,
     send_follow, send_unfollow
 )
-from peer_state import print_known_peers, print_messages, print_group_messages
+from peer_state import print_known_peers, print_messages, print_group_messages, groups, get_group_name
 from utils import get_timestamp
 from constants import PROFILE_INTERVAL
 
@@ -20,19 +20,19 @@ status = "Ready to connect!"  # Default status
 last_tictactoe_to = None
 last_tictactoe_gid = None
 
-def set_status(new_status):
+def set_status(new_status): # Update the global status variable
     global status
     status = new_status
 
-def load_my_user_id(csv_path="USER.csv"):
+def load_my_user_id(csv_path="USER.csv"): # Load my_user_id from USER.csv
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         user = next(reader)
         return user["my_user_id"]
     
-my_user_id = load_my_user_id()  # Replace with your real IP
+my_user_id = load_my_user_id()
 
-def create_post():
+def create_post(): # Create a post message
     content = input("Post content: ").strip()
     now = get_timestamp()
     message_id = uuid.uuid4().hex[:8]
@@ -45,7 +45,7 @@ def create_post():
         "TOKEN": f"{my_user_id}|{now + 3600}|broadcast"
     }
 
-def create_dm(target):
+def create_dm(target): # Create a direct message
     now = get_timestamp()
     message_id = uuid.uuid4().hex[:8]
     content = input("Message: ").strip()
@@ -59,7 +59,7 @@ def create_dm(target):
         "TOKEN": f"{my_user_id}|{now + 3600}|chat"
     }
 
-def create_group_msg():
+def create_group_msg(): # Create a group message for creating a new group
     group_id = input("Group ID: ").strip()
     group_name = input("Group Name: ").strip()
     members = input("Members (comma-separated user@ip): ").strip()
@@ -74,7 +74,7 @@ def create_group_msg():
         "TOKEN": f"{my_user_id}|{now + 3600}|group"
     }
 
-def update_group_msg():
+def update_group_msg(): # Add or Remove members from a group
     group_id = input("Group ID: ").strip()
     add = input("Add members (comma-separated user@ip, blank for none): ").strip()
     remove = input("Remove members (comma-separated user@ip, blank for none): ").strip()
@@ -89,7 +89,7 @@ def update_group_msg():
         "TOKEN": f"{my_user_id}|{now + 3600}|group"
     }
 
-def group_message_msg():
+def group_message_msg(): # Create a group message
     group_id = input("Group ID: ").strip()
     content = input("Message: ").strip()
     now = get_timestamp()
@@ -102,7 +102,15 @@ def group_message_msg():
         "TOKEN": f"{my_user_id}|{now + 3600}|group"
     }
 
-def create_tictactoe_invite():
+def show_group_members(): # Show members of a group
+    group_id = input("Group ID: ").strip()
+    if group_id in groups:
+        members = groups[group_id]["members"]
+        print(f"Members of group '{get_group_name(group_id)}': {', '.join(members)}")
+    else:
+        print(f"Group '{group_id}' does not exist.")
+
+def create_tictactoe_invite(): # Create a Tic Tac Toe invite message
     global last_tictactoe_to, last_tictactoe_gid
     to = input("Invite who (user@ip): ").strip()
     gid = f"g{random.randint(1, 255)}"
@@ -121,7 +129,7 @@ def create_tictactoe_invite():
         "TOKEN": f"{my_user_id}|{now + 3600}|game"
     }
 
-def create_tictactoe_move():
+def create_tictactoe_move(): # Create a Tic Tac Toe move message
     from game import games
     global last_tictactoe_to, last_tictactoe_gid
     gid = last_tictactoe_gid or input("Game ID: ").strip()
@@ -147,7 +155,7 @@ def create_tictactoe_move():
         "TOKEN": f"{my_user_id}|{now + 3600}|game"
     }
 
-def print_key_value_message(msg):
+def print_key_value_message(msg): # Print message in key-value format
     for key in ["TYPE", "FROM", "TO", "CONTENT", "TIMESTAMP", "MESSAGE_ID", "TOKEN"]:
         if key in msg:
             print(f"{key}: {msg[key]}")
@@ -241,29 +249,31 @@ Available commands:
                 print_known_peers()
             elif cmd == "show messages": # Show received posts and DMs
                 print_messages()
-            elif cmd.startswith("status"):
+            elif cmd.startswith("status"): # Update status
                 new_status = cmd[len("status") :].strip()
                 set_status(new_status)
                 print(f"Status updated to: {status}")
-            elif cmd.startswith("group create"):
+            elif cmd.startswith("group create"): # Create a new group
                 group_msg = create_group_msg()
                 send_message(group_msg, verbose=VERBOSE)
-            elif cmd.startswith("group update"):
+            elif cmd.startswith("group update"): # Update an existing group
                 group_msg = update_group_msg()
                 send_message(group_msg, verbose=VERBOSE)
-            elif cmd.startswith("group msg"):
+            elif cmd.startswith("group msg"): # Send a message to a group
                 group_msg = group_message_msg()
                 send_message(group_msg, verbose=VERBOSE)
-            elif cmd == "show group messages":
+            elif cmd == "show group messages": # Show messages in all groups
                 print_group_messages()
-            elif cmd == "tictactoe invite":
+            elif cmd.startswith("group members"): # Show members of a group
+                show_group_members()
+            elif cmd == "tictactoe invite": # Invite a user to play Tic Tac Toe
                 msg = create_tictactoe_invite()
                 send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
                 store_tictactoe_invite(msg)
                 print_board(msg["GAMEID"])
                 print(f"You sent a tictactoe invite to {msg['TO']} with Game ID {msg['GAMEID']}.\n"
                       f"You will be playing as {msg['SYMBOL']}\n")
-            elif cmd == "tictactoe move":
+            elif cmd == "tictactoe move": # Make a move in a Tic Tac Toe game
                 msg = create_tictactoe_move()
                 send_message(msg, addr=msg["TO"].split("@")[1], verbose=VERBOSE)
                 store_tictactoe_move(msg)  # Update local board immediately
@@ -276,5 +286,5 @@ Available commands:
             else: # Unknown command
                 print("Unknown command. Type 'help' for options.")
 
-    except KeyboardInterrupt:
+    except KeyboardInterrupt: # Handle Ctrl+C gracefully
         print("\nInterrupted. Exiting LSNP...")

@@ -1,4 +1,4 @@
-# Current Implementation: Milestone 1 and 2
+# Current Implementation: Milestone 1-3
 # By Alexi Alberto and Elmo Mandigma
 
 import time
